@@ -6,6 +6,8 @@ IMDb's advanced search is powerful, but movies, TV episodes and series don't com
 
 > Reel Weights works with IMDb but is not affiliated with, endorsed by, or sponsored by IMDb or Amazon. IMDb is a trademark of IMDb.com, Inc.
 
+<img width="1901" height="893" alt="Example" src="https://github.com/user-attachments/assets/9d8493f5-12ba-4654-9051-c1a4ea08e017" />
+
 ## What it does
 
 - **One search per title type.** Movies & TV movies, TV episodes & specials, and TV series & mini series each get their own search.
