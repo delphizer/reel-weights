@@ -24,7 +24,7 @@ Reel Weights isn't in an extension store yet, so you load it directly. This work
 1. Download this repository: **Code → Download ZIP**, then unzip it.
 2. Open `chrome://extensions`, or `edge://extensions` in Edge.
 3. Turn on **Developer mode** (top right in Chrome, left sidebar in Edge).
-4. Click **Load unpacked** and select the unzipped folder.
+4. Click **Load unpacked** and select the **`imdb-merge`** folder inside the unzipped download (the one with `manifest.json` in it).
 5. Pin Reel Weights from the extensions (puzzle piece) menu, then click its icon to open it.
 
 Keep the folder where it is after installing: the browser loads the extension from it. To update, replace the files in the same folder and click the reload arrow on the extension's card. Settings are tied to the folder location, so moving it resets them.
