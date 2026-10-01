@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel Weights</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon16.png">
+<style>
+  :root {
+    --bg: #E6E9EE;
+    --panel: #FFFFFF;
+    --ink: #1C2230;
+    --muted: #5E6778;
+    --line: #D3D8E0;
+    --gold: #D99A00;
+    --focus: #2F6FD6;
+    font-family: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  h1 { font-size: 1.25rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  #status { color: var(--muted); font-size: 0.9rem; flex: 1; min-width: 200px; }
+  .primary {
+    background: var(--ink); color: #fff; border: 0; border-radius: 6px;
+    padding: 9px 18px; font-weight: 600; cursor: pointer;
+  }
+  .primary:disabled { opacity: .5; cursor: progress; }
+  .ghost {
+    background: none; border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 12px; cursor: pointer; color: var(--muted);
+  }
+  .autofetch { display: flex; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+  .ghost:hover { color: var(--ink); border-color: var(--muted); }
+
+  main { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 70px); }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+
+  aside { padding: 20px; border-right: 1px solid var(--line); }
+  aside h2, .toolbar h2 { font-size: 1rem; font-weight: 600; margin: 0 0 12px; }
+  .src {
+    background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--c);
+    border-radius: 6px; padding: 10px 12px; margin-bottom: 12px;
+  }
+  .src-head { display: flex; gap: 8px; align-items: center; }
+  .src-head input[type=checkbox] { accent-color: var(--c); width: 16px; height: 16px; }
+  .src-head .label { flex: 1; border: 0; border-bottom: 1px dashed transparent; font-weight: 600; background: none; padding: 2px 0; }
+  .src-head .label:hover, .src-head .label:focus { border-bottom-color: var(--line); }
+  .src textarea {
+    width: 100%; margin-top: 8px; font-size: 0.78rem; color: var(--muted); resize: vertical;
+    border: 1px solid var(--line); border-radius: 4px; padding: 6px; min-height: 54px;
+  }
+  .src .note { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+  .src .note.warn { color: #9A5B00; }
+  .src .note.err { color: #B3261E; }
+  .src .fields { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 0.82rem; color: var(--muted); }
+  .src .fields input { width: 78px; border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; margin-left: 4px; }
+  .src .adj { display: flex; gap: 6px; align-items: flex-start; margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
+  .src .extra { display: grid; gap: 3px; margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
+  .src .extra input { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; }
+  .openlink { display: inline-block; margin-top: 6px; font-size: 0.8rem; color: var(--focus); }
+  .src .note.busy { color: var(--ink); font-weight: 600; }
+  .src .note.busy::before {
+    content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; vertical-align: 0;
+    border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .src .note.busy::before { animation: none; } }
+  .remove { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+  .remove:hover { color: #B3261E; }
+
+  section { padding: 20px 24px; min-width: 0; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .toolbar h2 { margin: 0 auto 0 0; }
+  .toolbar select, .toolbar input[type=search] {
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; background: var(--panel);
+  }
+  .toolbar label { font-size: 0.88rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+  #weights {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 22px; align-items: end;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  #weights[hidden] { display: none; }
+  #weights label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+  #weights input[type=range] { width: 100%; accent-color: var(--ink); }
+  #weights .ends { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); }
+  #weights output { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+  #weights #resetWeights { justify-self: start; }
+  .hint { font-size: 0.82rem; color: var(--muted); margin: -6px 0 12px; }
+  aside h2.gap { margin-top: 24px; }
+  .auto-top { display: grid; gap: 10px; margin-bottom: 12px; font-size: 0.85rem; color: var(--muted); }
+  .auto-top input[type=number] { width: 64px; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; background: var(--panel); }
+  .auto-top .stack { display: grid; gap: 4px; }
+  .auto-top fieldset.shared { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 8px 10px 10px; margin: 0; display: grid; gap: 8px; }
+  .auto-top legend { padding: 0 4px; font-weight: 600; color: var(--ink); }
+  .auto-top .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .auto-top .chip { display: inline-flex; gap: 5px; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px 2px 7px; font-size: 0.8rem; color: var(--ink); cursor: pointer; }
+  .auto-top .chip:has(input:checked) { background: #EEF2F8; border-color: #B9C3D3; }
+  .auto-top .sublabel { font-size: 0.78rem; color: var(--muted); }
+  .auto-top input[type=text] { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; font-size: 0.78rem; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--focus); cursor: pointer; font-size: inherit; text-decoration: underline; }
+  .auto-top textarea { width: 100%; font-size: 0.75rem; min-height: 64px; resize: vertical; border: 1px solid var(--line); border-radius: 4px; padding: 6px; }
+  .src.auto .label { border: 0; }
+  .src .minv { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+  .src .minv input { width: 90px; border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; }
+  .tw-head { grid-column: 1 / -1; font-weight: 600; font-size: 0.9rem; border-top: 1px solid var(--line); padding-top: 12px; }
+  .tw-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 22px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .score .ws { color: var(--ink); font-weight: 600; }
+  .wsec { grid-column: 1 / -1; }
+  .wsec + .wsec, .wsec + .subbox { border-top: 1px solid var(--line); padding-top: 12px; }
+  .wsec summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+  .wsec[open] summary { margin-bottom: 10px; }
+  .wsec .gnote { margin-bottom: 10px; }
+  .wgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 22px; }
+  .subbox { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 12px; }
+  .subbox summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+  .subbox[open] summary { margin-bottom: 8px; }
+  .subbox .gnote { margin-bottom: 10px; }
+  .tw-head .sub { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .cnt { font-weight: 400; font-size: 0.78rem; color: var(--muted); margin-left: 4px; }
+  .gnote { margin: 0; font-size: 0.85rem; color: var(--muted); }
+  #countNote { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+  .meta.genres { margin-top: 1px; }
+  .trailer { color: var(--focus); text-decoration: none; }
+  .trailer:hover { text-decoration: underline; }
+  .mc {
+    display: inline-block; min-width: 24px; margin-top: 3px; padding: 0 4px; border-radius: 3px;
+    color: #fff; font-weight: 600; font-size: 0.78rem; text-align: center;
+  }
+  .mc.hi { background: #3C8527; }
+  .mc.mid { background: #B8860B; }
+  .mc.lo { background: #C0392B; }
+  .explain { font-size: 0.85rem; color: var(--muted); margin: -4px 0 14px; max-width: 70ch; }
+
+  ol#list { list-style: none; margin: 0; padding: 0; }
+  .row {
+    display: grid; grid-template-columns: 30px 48px 1fr 170px 96px 28px; gap: 14px; align-items: center;
+    background: var(--panel); border-bottom: 1px solid var(--line); padding: 8px 12px;
+  }
+  .row:first-child { border-radius: 6px 6px 0 0; }
+  .row.hidden-item { opacity: .45; }
+  .rank { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; font-size: .85rem; }
+  .poster { width: 48px; height: 70px; object-fit: cover; border-radius: 3px; background: var(--line); }
+  .title a { color: var(--ink); font-weight: 600; text-decoration: none; }
+  .title a:hover { text-decoration: underline; }
+  .meta { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+  .plot { color: var(--muted); font-size: 0.8rem; margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* The standing bars: where this title sits within each list it came from */
+  .standing { display: grid; gap: 4px; }
+  .bar { height: 8px; background: #EEF0F4; border-radius: 4px; position: relative; }
+  .bar span { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--c); }
+  .standing small { font-size: 0.72rem; color: var(--muted); }
+
+  .score { text-align: right; font-variant-numeric: tabular-nums; }
+  .score b { font-size: 1.05rem; }
+  .score b::before { content: "★ "; color: var(--gold); }
+  .score div { color: var(--muted); font-size: 0.8rem; }
+  .hide { background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 1rem; }
+  .hide:hover { color: var(--ink); }
+
+  dialog#trouble { max-width: 460px; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; color: var(--ink); background: var(--panel); }
+  dialog#trouble::backdrop { background: rgba(20, 24, 32, .35); }
+  dialog#trouble h2 { margin: 0 0 8px; font-size: 1.1rem; }
+  dialog#trouble p, dialog#trouble li { font-size: 0.9rem; line-height: 1.45; }
+  dialog#trouble ul { padding-left: 18px; margin: 8px 0 16px; }
+  dialog#trouble li { margin-bottom: 6px; }
+  .dlg-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .dlg-actions .primary { text-decoration: none; display: inline-block; }
+  .group-toggle {
+    margin-top: 5px; background: #EEF2F8; border: 1px solid #C9D2DF; border-radius: 999px;
+    padding: 2px 10px; font-size: 0.78rem; color: var(--ink); cursor: pointer;
+  }
+  .group-toggle:hover { border-color: var(--muted); }
+  .row.child { background: #F6F8FB; padding-left: 40px; }
+  .row.child .poster { width: 36px; height: 52px; justify-self: end; }
+  .empty { background: var(--panel); border-radius: 6px; padding: 32px; color: var(--muted); }
+  @media (max-width: 700px) {
+    .row { grid-template-columns: 40px 1fr 70px 24px; }
+    .rank, .standing { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Reel Weights</h1>
+  <div id="status" role="status">Add your searches, then fetch.</div>
+  <button class="ghost" id="exportBtn">Export CSV</button>
+  <label class="autofetch"><input type="checkbox" id="autoFetch" checked> Fetch on open</label>
+  <button class="primary" id="fetchBtn">Fetch &amp; merge</button>
+</header>
+<main>
+  <aside>
+    <h2>By title type</h2>
+    <p class="hint">Each type gets one search per fetch. If the count lands outside your range, the rating and vote minimum both move for the next fetch unless you turn that off.</p>
+    <div id="auto"></div>
+    <h2 class="gap">Your own searches</h2>
+    <div id="sources"></div>
+    <button class="ghost" id="addBtn">Add search</button>
+  </aside>
+  <section>
+    <div class="toolbar">
+      <h2><span id="count">Results</span> <small id="countNote"></small></h2>
+      <input type="search" id="q" placeholder="Filter by title">
+      <select id="type" aria-label="Title type"><option value="all">All types</option></select>
+      <select id="genre" aria-label="Genre"><option value="all">All genres</option></select>
+      <select id="maxLen" aria-label="Maximum length">
+        <option value="0">Any length</option>
+        <option value="30">Up to 30m</option>
+        <option value="60">Up to 1h</option>
+        <option value="90">Up to 1h 30m</option>
+        <option value="120">Up to 2h</option>
+        <option value="150">Up to 2h 30m</option>
+      </select>
+      <select id="perShow" aria-label="Episodes of the same show">
+        <option value="group">Group episodes by show</option>
+        <option value="all">List every episode</option>
+      </select>
+      <select id="sort" aria-label="Sort">
+        <option value="weighted">Weighted (sliders)</option>
+        <option value="standing">Standing in its own list</option>
+        <option value="interleave">Interleave lists (keeps each list's order)</option>
+        <option value="adjusted">Rating adjusted for votes</option>
+        <option value="rating">IMDb rating</option>
+        <option value="critics">Metascore (critics)</option>
+        <option value="votes">Number of votes</option>
+        <option value="new">Newest first</option>
+        <option value="old">Oldest first</option>
+      </select>
+      <label title="Untick to show only series that have ended"><input type="checkbox" id="showRunning" checked> Still-running shows</label>
+      <label><input type="checkbox" id="showHidden"> Show hidden</label>
+    </div>
+    <div id="weights" hidden>
+      <details class="wsec" data-sec="main" open>
+        <summary>Ranking</summary>
+        <div class="wgrid">
+          <div class="w">
+            <label for="w-recency">Age</label>
+            <input type="range" id="w-recency" min="-10" max="10" step="1">
+            <span class="ends"><span>Older</span><output id="o-recency"></output><span>Newer</span></span>
+          </div>
+          <div class="w">
+            <label for="w-popularity">Popularity</label>
+            <input type="range" id="w-popularity" min="0" max="10" step="1">
+            <span class="ends"><span>Ignore</span><output id="o-popularity"></output><span>Matters a lot</span></span>
+          </div>
+          <div class="w">
+            <label for="w-rating">User rating</label>
+            <input type="range" id="w-rating" min="0" max="10" step="1">
+            <span class="ends"><span>Ignore</span><output id="o-rating"></output><span>Matters a lot</span></span>
+          </div>
+          <div class="w">
+            <label for="w-votes">Number of ratings</label>
+            <input type="range" id="w-votes" min="0" max="10" step="1">
+            <span class="ends"><span>Ignore</span><output id="o-votes"></output><span>Matters a lot</span></span>
+          </div>
+          <div class="w">
+            <label for="w-critics">Critics (Metascore)</label>
+            <input type="range" id="w-critics" min="0" max="10" step="1">
+            <span class="ends"><span>Ignore</span><output id="o-critics"></output><span>Matters a lot</span></span>
+          </div>
+        </div>
+      </details>
+      <details class="wsec" data-sec="type" open>
+        <summary>Title type</summary>
+        <div id="typeWeights" class="tw-grid"></div>
+      </details>
+      <details class="wsec" data-sec="genre" open>
+        <summary>Genre</summary>
+        <p class="gnote">These count like the sliders above: Sci-Fi at 7 matters as much as User rating at 7, for titles tagged Sci-Fi. Negative counts against a genre; −10 hides it. Genres at +5 or more also get a deeper search on the next fetch. A genre gets a slider once it's on enough titles.</p>
+        <div id="genreWeights" class="tw-grid"></div>
+      </details>
+      <details id="subBox" class="subbox">
+        <summary>Sub-genres <span id="subSummary" class="cnt"></span></summary>
+        <p class="gnote">IMDb's finer tags, like Space Sci-Fi or Dark Comedy. They work like the genre sliders.</p>
+        <div id="subWeights" class="tw-grid"></div>
+      </details>
+      <button class="ghost" id="resetWeights">Reset</button>
+    </div>
+    <p class="explain" id="explain"></p>
+    <ol id="list"></ol>
+  </section>
+</main>
+<dialog id="trouble" aria-labelledby="troubleTitle">
+  <h2 id="troubleTitle">Nothing came back from IMDb</h2>
+  <p id="troubleWhy"></p>
+  <p>Open the search yourself to see what IMDb is showing:</p>
+  <ul>
+    <li><b>A robot check or "are you human?" page.</b> Complete it, come back, and fetch again.</li>
+    <li><b>You're signed out.</b> Sign in to IMDb in this browser. Filters like "hide titles I've watched" only work when you're signed in.</li>
+    <li><b>The search itself shows no results.</b> The filters are too strict. Loosen the rating, votes, years, or countries in the sidebar.</li>
+  </ul>
+  <div class="dlg-actions">
+    <a id="troubleLink" class="primary" href="#" target="_blank" rel="noopener">Open the search on IMDb</a>
+    <button class="ghost" id="troubleClose">Close</button>
+  </div>
+</dialog>
+<script src="merger.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Reel Weights",
+  "version": "1.8.1",
+  "description": "Mix several movie & TV searches into one list, ranked by sliders you set. Works with IMDb; not affiliated with or endorsed by IMDb.",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.imdb.com/*",
+    "https://api.graphql.imdb.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open Reel Weights",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
